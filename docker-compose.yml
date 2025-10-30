@@ -1,0 +1,100 @@
+version: "3.8"
+
+services:
+  # Next.js Application
+  getfit-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_POCKETBASE_URL: ${NEXT_PUBLIC_POCKETBASE_URL:-http://getfit-next.local/pocketbase}
+    container_name: getfit-app
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_POCKETBASE_URL=${NEXT_PUBLIC_POCKETBASE_URL:-http://getfit-next.local/pocketbase}
+    depends_on:
+      pocketbase:
+        condition: service_healthy
+    networks:
+      - getfit-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3001/api/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PocketBase Database
+  pocketbase:
+    image: ghcr.io/muchobien/pocketbase:latest
+    container_name: getfit-pocketbase
+    restart: unless-stopped
+    command:
+      - --encryptionEnv
+      - PB_ENCRYPTION_KEY
+    ports:
+      - "8090:8090"
+    environment:
+      - PB_ENCRYPTION_KEY=${PB_ENCRYPTION_KEY}
+    volumes:
+      - pb_data:/pb/pb_data
+      - ./pb_migrations:/pb/pb_migrations:ro
+      - ./pb_hooks:/pb/pb_hooks:ro
+    networks:
+      - getfit-network
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8090/api/health",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # Caddy Reverse Proxy (for HTTPS)
+  caddy:
+    image: caddy:2-alpine
+    container_name: getfit-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - getfit-network
+    depends_on:
+      - getfit-app
+      - pocketbase
+
+volumes:
+  pb_data:
+    driver: local
+  caddy_data:
+    driver: local
+  caddy_config:
+    driver: local
+
+networks:
+  getfit-network:
+    driver: bridge
