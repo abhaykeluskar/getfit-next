@@ -68,31 +68,8 @@ services:
       retries: 3
       start_period: 30s
 
-  # Caddy Reverse Proxy (for HTTPS)
-  caddy:
-    image: caddy:2-alpine
-    container_name: getfit-caddy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-      - "443:443/udp"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    networks:
-      - getfit-network
-    depends_on:
-      - getfit-app
-      - pocketbase
-
 volumes:
   pb_data:
-    driver: local
-  caddy_data:
-    driver: local
-  caddy_config:
     driver: local
 
 networks:

@@ -15,7 +15,7 @@ A mobile-first, offline-capable Progressive Web App (PWA) for tracking workouts 
 
 - **Frontend**: Next.js 15, TypeScript, Tailwind CSS
 - **Database**: IndexedDB (Dexie.js) + PocketBase
-- **Deployment**: Docker, Docker Compose, Caddy
+- **Deployment**: Docker, Docker Compose
 
 ## Quick Start
 
