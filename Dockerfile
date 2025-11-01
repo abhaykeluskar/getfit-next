@@ -14,9 +14,6 @@ RUN npm ci
 
 COPY . .
 
-# DELETE the problematic icon directory immediately
-RUN rm -rf ./public/icon
-
 ARG NEXT_PUBLIC_POCKETBASE_URL
 ENV NEXT_PUBLIC_POCKETBASE_URL=$NEXT_PUBLIC_POCKETBASE_URL
 ENV NODE_ENV=production
@@ -37,11 +34,13 @@ COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/package.json ./package.json
 COPY --from=deps /app/node_modules ./node_modules
 
-# Copy public directory (after icon is already deleted in builder stage)
+# Copy public directory
 COPY --from=builder /app/public/ ./public/
 
-# Ensure all permissions are correct
-RUN chmod -R 755 /app
+# CRITICAL: Fix all permissions - make everything world-readable and world-executable for directories
+RUN chmod -R 755 /app && \
+    find /app/public -type d -exec chmod 755 {} \; && \
+    find /app/public -type f -exec chmod 644 {} \;
 
 EXPOSE 3001
 
