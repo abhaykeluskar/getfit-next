@@ -35,16 +35,13 @@ services:
 
   # PocketBase Database
   pocketbase:
-    image: ghcr.io/muchobien/pocketbase:latest
+    image: pocketbase/pocketbase:latest
     container_name: getfit-pocketbase
     restart: unless-stopped
-    command:
-      - --encryptionEnv
-      - PB_ENCRYPTION_KEY
+    command: serve --http=0.0.0.0:8090
     ports:
       - "8090:8090"
-    environment:
-      - PB_ENCRYPTION_KEY=${PB_ENCRYPTION_KEY}
+
     volumes:
       - pb_data:/pb/pb_data
       - ./pb_migrations:/pb/pb_migrations:ro
