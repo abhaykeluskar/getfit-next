@@ -17,7 +17,6 @@ COPY . .
 ARG NEXT_PUBLIC_POCKETBASE_URL
 ENV NEXT_PUBLIC_POCKETBASE_URL=$NEXT_PUBLIC_POCKETBASE_URL
 ENV NODE_ENV=production
-ENV DOCKER_ENV=true
 
 RUN npm run build
 
@@ -28,22 +27,29 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV HOSTNAME="0.0.0.0"
 ENV PORT=3001
-ENV DOCKER_ENV=true
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
+# Copy public files
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+# Copy Next.js build output
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+
+# Copy package.json for 'next start'
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
 
+# Copy production dependencies
 COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
 
-RUN chown -R nextjs:nodejs /app
+# Fix permissions
+RUN chown -R nextjs:nodejs /app && \
+    chmod -R 755 /app
 
 USER nextjs
 
 EXPOSE 3001
 
-CMD ["node", "server.js"]
+CMD ["npm", "start"]
