@@ -1,56 +1,67 @@
-const withPWA = require('@ducanh2912/next-pwa').default({
-  dest: 'public',
-  disable: process.env.NODE_ENV === 'development',
+const withPWA = require("@ducanh2912/next-pwa").default({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
   register: true,
   skipWaiting: true,
+  fallbacks: {
+    document: "/offline",
+  },
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,
-      handler: 'CacheFirst',
+      handler: "CacheFirst",
       options: {
-        cacheName: 'google-fonts-webfonts',
+        cacheName: "google-fonts-webfonts",
         expiration: {
           maxEntries: 4,
-          maxAgeSeconds: 365 * 24 * 60 * 60
-        }
-      }
+          maxAgeSeconds: 365 * 24 * 60 * 60,
+        },
+      },
     },
     {
       urlPattern: /\.(?:eot|otf|ttc|ttf|woff|woff2|font.css)$/i,
-      handler: 'StaleWhileRevalidate',
+      handler: "StaleWhileRevalidate",
       options: {
-        cacheName: 'static-font-assets',
+        cacheName: "static-font-assets",
         expiration: {
           maxEntries: 4,
-          maxAgeSeconds: 7 * 24 * 60 * 60
-        }
-      }
+          maxAgeSeconds: 7 * 24 * 60 * 60,
+        },
+      },
     },
     {
       urlPattern: /\.(?:jpg|jpeg|gif|png|svg|ico|webp)$/i,
-      handler: 'StaleWhileRevalidate',
+      handler: "StaleWhileRevalidate",
       options: {
-        cacheName: 'static-image-assets',
+        cacheName: "static-image-assets",
         expiration: {
           maxEntries: 64,
-          maxAgeSeconds: 24 * 60 * 60
-        }
-      }
-    }
-  ]
+          maxAgeSeconds: 24 * 60 * 60,
+        },
+      },
+    },
+  ],
 });
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'standalone',
+  output: "standalone",
   reactStrictMode: true,
+  poweredByHeader: false,
   images: {
-    formats: ['image/webp'],
+    formats: ["image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200],
+    unoptimized: process.env.NODE_ENV === "production",
   },
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: process.env.NODE_ENV === "production",
+  },
+  eslint: {
+    ignoreDuringBuilds: false,
+  },
+  typescript: {
+    tsconfigPath: "./tsconfig.json",
   },
 };
 
-module.exports = withPWA(nextConfig);
+export default withPWA(nextConfig);

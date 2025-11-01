@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_POCKETBASE_URL: ${NEXT_PUBLIC_POCKETBASE_URL:-http://localhost:8090}
+        NEXT_PUBLIC_POCKETBASE_URL: ${NEXT_PUBLIC_POCKETBASE_URL:-http://pocketbase:8090}
     container_name: getfit-app
     restart: unless-stopped
     ports:
@@ -31,13 +31,9 @@ services:
       retries: 3
       start_period: 40s
 
-  # PocketBase Database
+  # PocketBase Database (rest unchanged)
   pocketbase:
-    build:
-      context: .
-      dockerfile: Dockerfile.pocketbase
-      args:
-        PB_VERSION: "0.31.0"
+    image: ghcr.io/muchobien/pocketbase:latest
     container_name: getfit-pocketbase
     restart: unless-stopped
     ports:
