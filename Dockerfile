@@ -28,27 +28,20 @@ ENV NODE_ENV=production
 ENV HOSTNAME="0.0.0.0"
 ENV PORT=3001
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Create public directory with proper permissions before copying
+RUN mkdir -p /app/public && chmod 755 /app/public
 
-# Copy public files
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+# Copy built files
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/package.json ./package.json
+COPY --from=deps /app/node_modules ./node_modules
 
-# Copy Next.js build output
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# Copy public directory (only what exists and is needed)
+COPY --from=builder /app/public/ ./public/
 
-# Copy package.json for 'next start'
-COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
-
-# Copy production dependencies
-COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
-
-# Fix permissions
-RUN chown -R nextjs:nodejs /app && \
-    chmod -R 755 /app
-
-USER nextjs
+# Final permissions - ensure everything is readable
+RUN chmod -R 755 /app
 
 EXPOSE 3001
 
