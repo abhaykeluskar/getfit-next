@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   # Next.js Application
   getfit-app:
@@ -13,11 +15,13 @@ services:
     environment:
       - NODE_ENV=production
       - NEXT_PUBLIC_POCKETBASE_URL=${NEXT_PUBLIC_POCKETBASE_URL:-http://pocketbase:8090}
+      - NEXT_PRIVATE_STANDALONE=true
     depends_on:
       pocketbase:
         condition: service_healthy
     networks:
       - getfit-network
+    # No volumes - standalone mode doesn't need them
     healthcheck:
       test:
         - CMD
@@ -31,7 +35,7 @@ services:
       retries: 3
       start_period: 40s
 
-  # PocketBase Database (rest unchanged)
+  # PocketBase Database
   pocketbase:
     image: ghcr.io/muchobien/pocketbase:latest
     container_name: getfit-pocketbase
